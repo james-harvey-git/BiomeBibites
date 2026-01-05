@@ -14,6 +14,63 @@ We discovered fundamental issues with our BIOME implementation and are now redes
 
 ---
 
+## 2026-01-05 - Phase 1: Core Data Structures (COMPLETE)
+
+### New Files Created
+
+**Core Data Structures (`Assets/Scripts/BIOME/Core/`):**
+
+1. **BiomeNode.cs** - The fundamental computing unit in BIOME
+   - `BiomeNode` struct with all required fields (Id, CatalogueId, Affinity, ActivationFunction, Bias, Activation, Output, PreviousOutput, LastUpdateFrame)
+   - `NodeAffinity` enum (Genetic, Biological, Behavioural)
+   - `ActivationFunctionType` enum (14 types including Identity, Sigmoid, TanH, Latch, Integrator, etc.)
+   - Factory methods: `Create()`, `CreateGene()`, `CreateHidden()`
+
+2. **BiomeConnection.cs** - Links nodes together
+   - `BiomeConnection` struct with FromNodeId, ToNodeId, Weight, Enabled, InnovationNumber
+   - `GetEffectiveWeight()` method that applies affinity effectiveness matrix
+
+3. **AffinitySystem.cs** - Manages update rates and connection effectiveness
+   - Connection effectiveness matrix (Genetic→Behavioural=0.3, Behavioural→Genetic=0.01, etc.)
+   - Mutation prior matrix for biologically plausible connection mutations
+   - `ShouldUpdateNode()` for affinity-based update timing
+   - BIOLOGICAL nodes update at ~5 Hz (every 12 frames)
+
+4. **ActivationFunctions.cs** - All 14 activation function implementations
+   - Identity, Sigmoid, Linear, TanH, Sine, ReLU, Gaussian
+   - Stateful functions: Latch, Differential, Integrator, Inhibitory, SoftLatch
+   - Mult, Abs
+   - `Apply()` method handles all function types with deltaTime support
+
+**Node Catalogue (`Assets/Scripts/BIOME/Catalogue/`):**
+
+5. **NodeCatalogue.cs** - Complete catalogue of all possible node types
+   - 35+ Gene nodes (appearance, metabolism, WAG organs, vision, clock, herding, growth, etc.)
+   - 7 Internal sensor nodes (BIOLOGICAL affinity: EnergyRatio, LifeRatio, Fullness, etc.)
+   - 25+ External sensor nodes (BEHAVIOURAL affinity: vision, pheromones, movement, etc.)
+   - 15 Output nodes with FIXED activation functions (Accelerate, Rotate, Want2Eat, etc.)
+   - Constant nodes for module enable signals
+   - `NodeDefinition` struct and `NodeCategory` enum
+   - Public API: `GetDefinition()`, `CreateNodeFromCatalogue()`, `GetGeneNodeIds()`, etc.
+
+**Project Configuration:**
+
+6. **CLAUDE.md** - Instructions for AI-assisted development
+   - Changelog update requirement after each change
+
+### Key Design Decisions
+
+- **All constants use meaningful IDs**: Genes 0-99, Internal sensors 100-149, External sensors 150-249, Outputs 300-399
+- **Affinity effectiveness matrix** prevents non-biological wiring (Behavioural→Genetic = 0.01)
+- **Output nodes have FIXED activation functions** matching original Bibites (e.g., Accelerate uses TanH with default bias 0.45)
+- **Gene nodes use Identity activation** where Output = Bias (the gene value)
+
+### Phase 1 Status: ✅ COMPLETE
+
+All core data structures are implemented. Ready for Phase 2 (Gene System as Nodes).
+
+---
+
 ## 2026-01-05 - MAJOR ARCHITECTURE RETHINK
 
 ### The Problem We Discovered
@@ -125,12 +182,18 @@ These systems read from `BrainState` component, which will still be populated by
 - Pheromone grid (needs integration update)
 - GL-based rendering
 
-### 🔄 Needs Rewrite (BIOME Core)
+### ✅ Phase 1 Complete (BIOME Core Data Structures)
+- BiomeNode.cs - Node struct with affinity system
+- BiomeConnection.cs - Connection struct with effectiveness
+- AffinitySystem.cs - Update rates and effectiveness matrix
+- ActivationFunctions.cs - All 14 activation functions
+- NodeCatalogue.cs - Complete node type catalogue
+
+### 🔄 Needs Rewrite (BIOME Core - Phases 2-8)
 - BiomeBrain.cs → New unified brain with genes as nodes
 - BiomeModules.cs → Modules with input nodes for config
 - BiomeBrainSystem.cs → Process the new brain
 - Mutation system → Add all 7 mutation types
-- Node catalogue → Define all possible nodes
 
 ### ❌ To Be Deleted
 - Old InputNeurons/OutputNeurons static classes
