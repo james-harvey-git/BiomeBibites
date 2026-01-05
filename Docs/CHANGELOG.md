@@ -14,6 +14,53 @@ We discovered fundamental issues with our BIOME implementation and are now redes
 
 ---
 
+## 2026-01-05 - Phase 2: Gene System as Nodes (COMPLETE)
+
+### New Files Created
+
+**Core (`Assets/Scripts/BIOME/Core/`):**
+
+1. **BiomeNetwork.cs** - The unified BIOME network class
+   - Main brain class where genes ARE nodes (no separate genome)
+   - Node and connection storage with efficient lookup caches
+   - `AddNodeFromCatalogue()` - adds nodes with default or custom bias
+   - `AddHiddenNode()` - creates hidden neurons from mutations
+   - `AddConnection()` / `AddConnectionByCatalogue()` - wire nodes together
+   - `GetGeneValue()` / `SetGeneValue()` - access gene nodes by catalogue ID
+   - `GetOutputValue()` / `SetSensorValue()` - access outputs and sensors
+   - `Process(deltaTime)` - full network update with affinity-based timing
+   - `Clone()` - deep copy for offspring (before mutations)
+   - **WAG calculations built-in**: `GetTotalWAG()`, `GetOrganSize()`, `GetOrganSizes()`
+   - `OrganSizes` struct for efficient organ size access
+
+**Catalogue (`Assets/Scripts/BIOME/Catalogue/`):**
+
+2. **StarterBrain.cs** - Default brain configuration factory
+   - `CreateDefault()` - creates a functional starter brain
+   - `CreateRandomized()` - creates brain with randomized gene values
+   - **Essential genes** (35+): All appearance, size, metabolism, reproduction, vision, clock, herding, growth, WAG, fat metabolism genes
+   - **Sparse sensors** (4 only): EnergyRatio, Fullness, PlantCloseness, PlantAngle
+   - **All outputs** (15): Added but mostly unconnected, use default bias
+   - **Seed connections** (3): Basic food-seeker behavior
+     - PlantAngle → Rotate (+1.0) - turn toward plants
+     - PlantCloseness → Accelerate (-1.0) - move faster when plants are far
+     - Fullness → Digestion (+1.0) - digest when full
+   - `Validate()` - checks network has required components
+
+### Key Design Decisions
+
+- **Genes ARE nodes** - No separate gene storage. Gene values are node biases with GENETIC affinity.
+- **Sparse instantiation** - Starter brain has only 4 sensors; mutations can add more from catalogue.
+- **WAG from Gene nodes** - Organ sizes calculated directly from Gene_WAG_* node outputs.
+- **Network processing** respects affinity update rates (Genetic=never, Biological=5Hz, Behavioural=60Hz).
+- **Clone for reproduction** - Deep copy network before applying mutations.
+
+### Phase 2 Status: ✅ COMPLETE
+
+Gene system implemented as nodes. BiomeNetwork is the unified brain where all genes are nodes.
+
+---
+
 ## 2026-01-05 - Phase 1: Core Data Structures (COMPLETE)
 
 ### New Files Created
@@ -189,11 +236,15 @@ These systems read from `BrainState` component, which will still be populated by
 - ActivationFunctions.cs - All 14 activation functions
 - NodeCatalogue.cs - Complete node type catalogue
 
-### 🔄 Needs Rewrite (BIOME Core - Phases 2-8)
-- BiomeBrain.cs → New unified brain with genes as nodes
-- BiomeModules.cs → Modules with input nodes for config
-- BiomeBrainSystem.cs → Process the new brain
-- Mutation system → Add all 7 mutation types
+### ✅ Phase 2 Complete (Gene System as Nodes)
+- BiomeNetwork.cs - Unified brain where genes ARE nodes
+- StarterBrain.cs - Default brain configuration with seed connections
+- WAG calculations from Gene nodes
+
+### 🔄 Needs Implementation (BIOME Core - Phases 3-8)
+- BiomeModules - Modules with input nodes for config (Phase 3-4)
+- BiomeBrainSystem.cs → Process the new brain (Phase 5)
+- Mutation system → Add all 7 mutation types (Phase 6)
 
 ### ❌ To Be Deleted
 - Old InputNeurons/OutputNeurons static classes
